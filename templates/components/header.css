@@ -1,0 +1,10 @@
+.header {
+  background: #034f74;
+  margin-bottom: 0.3rem;
+}
+
+.header p {
+  color: #fff;
+  display: inline-block;
+  margin: 0.5rem 0.4rem;
+}

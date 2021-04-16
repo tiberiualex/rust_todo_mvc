@@ -7,6 +7,7 @@ use jwt:: { Header, Token, VerifyWithKey };
 use jwt::SignWithKey;
 use sha2::Sha256;
 use std::collections::BTreeMap;
+use actix_web::HttpRequest;
 
 pub struct JwtToken {
     pub user_id: i32,
@@ -36,6 +37,13 @@ impl JwtToken {
                 return Ok(JwtToken { user_id: claims["user_id"], body: encoded_token})
             }
             Err(_) => return Err("Could not decode")
+        }
+    }
+
+    pub fn decode_from_request(request: HttpRequest) -> Result<JwtToken, &'static str> {
+        match request.headers().get("user-token") {
+            Some(token) => JwtToken::decode(String::from(token.to_str().unwrap())),
+            None => Err("there is no token")
         }
     }
 }

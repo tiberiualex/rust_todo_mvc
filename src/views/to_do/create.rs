@@ -11,20 +11,25 @@ use crate::models::item::item::Item;
 use crate::schema::to_do;
 use super::utils::return_state;
 
+use crate::auth::jwt::JwtToken;
+
 pub async fn create(req: HttpRequest) -> impl Responder {
     let title: String = req.match_info().get("title").unwrap().to_string();
     let title_ref: String = title.clone();
 
+    let token: JwtToken = JwtToken::decode_from_request(req).unwrap();
+
     let connection = establish_connection();
     let items = to_do::table.filter(to_do::columns::title.eq(title_ref.as_str()))
+                            .filter(to_do::columns::user_id.eq(&token.user_id))
                             .order(to_do::columns::id.asc())
                             .load::<Item>(&connection)
                             .unwrap();
 
     if items.len() == 0 {
-        let new_post = NewItem::new(title, 1);
+        let new_post = NewItem::new(title, token.user_id);
         let _ = diesel::insert_into(to_do::table).values(&new_post).execute(&connection);
     }
 
-    return return_state();
+    return return_state(&token.user_id);
 }
